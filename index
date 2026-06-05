@@ -1,0 +1,576 @@
+index.html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .header, .card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .header { margin-bottom: 20px; }
+    .title {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .desc {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    input, button {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
+    }
+    input {
+      flex: 1 1 260px;
+      background: white;
+    }
+    button {
+      cursor: pointer;
+      background: #111827;
+      color: white;
+      border: none;
+      min-width: 120px;
+    }
+    button:hover { background: #0b1220; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 22px;
+    }
+    .price-main {
+      font-size: 40px;
+      font-weight: bold;
+      margin: 10px 0 6px;
+    }
+    .up { color: #059669; }
+    .down { color: #dc2626; }
+    .neutral { color: #374151; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .mini-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .mini-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .mini-value {
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .range-wrap { margin-top: 22px; }
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .range-bar {
+      position: relative;
+      height: 14px;
+      background: linear-gradient(90deg, #dbeafe 0%, #bfdbfe 100%);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .range-marker {
+      position: absolute;
+      top: -5px;
+      width: 2px;
+      height: 24px;
+      background: #111827;
+      border-radius: 2px;
+    }
+    .range-caption {
+      margin-top: 10px;
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .analysis-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.8;
+      color: #374151;
+    }
+
+    .chart-wrap {
+      margin-top: 22px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .chart-title {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    canvas {
+      width: 100%;
+      height: 260px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      display: block;
+    }
+    .chart-meta {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.7;
+    }
+
+    .summary-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 16px;
+      line-height: 1.9;
+      color: #374151;
+      white-space: pre-line;
+    }
+
+    .scenario-box {
+      margin-top: 18px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .scenario-title {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .scenario-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #374151;
+    }
+
+    .notice {
+      background: #111827;
+      color: white;
+      border-radius: 16px;
+      padding: 18px 20px;
+      line-height: 1.7;
+      margin-top: 20px;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #dc2626;
+      font-size: 14px;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .mini-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+      .price-main {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <h1 class="title">📊 주식 분석 페이지</h1>
+      <p class="desc">
+        종목 심볼을 입력하면 현재가, 최근 30일 차트, 최근 뉴스 종합 요약을 보여줍니다.
+        아래 문구는 투자 권유가 아니라 현재 및 과거 데이터 기반 관찰 요약입니다.
+      </p>
+
+      <div class="controls">
+        <input id="symbol" placeholder="예: AAPL / MSFT / NVDA" />
+        <button onclick="loadData()">조회</button>
+      </div>
+      <div id="error" class="error"></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2 class="section-title">종목 스냅샷</h2>
+        <div id="symbolName" class="desc">종목을 조회해 주세요.</div>
+        <div id="price" class="price-main">-</div>
+        <div id="changeText" class="neutral">-</div>
+
+        <div class="mini-grid">
+          <div class="mini-box">
+            <div class="mini-label">시가</div>
+            <div id="open" class="mini-value">-</div>
+          </div>
+          <div class="mini-box">
+            <div class="mini-label">고가</div>
+            <div id="high" class="mini-value">-</div>
+          </div>
+          <div class="mini-box">
+            <div class="mini-label">저가</div>
+            <div id="low" class="mini-value">-</div>
+          </div>
+          <div class="mini-box">
+            <div class="mini-label">전일종가</div>
+            <div id="prevClose" class="mini-value">-</div>
+          </div>
+        </div>
+
+        <div class="range-wrap">
+          <div class="range-labels">
+            <span id="rangeLowLabel">저가: -</span>
+            <span id="rangeHighLabel">고가: -</span>
+          </div>
+          <div class="range-bar">
+            <div id="rangeMarker" class="range-marker" style="left:0%;"></div>
+          </div>
+          <div id="rangeCaption" class="range-caption">
+            현재 위치 분석이 여기에 표시됩니다.
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title">최근 30일 종가 차트</div>
+          <canvas id="priceChart" width="900" height="260"></canvas>
+          <div id="chartMeta" class="chart-meta">차트 메타 정보가 여기에 표시됩니다.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">관찰 포인트</h2>
+        <ul id="analysisList" class="analysis-list">
+          <li>조회 후 현재 및 최근 30일 기반 관찰 문구가 표시됩니다.</li>
+        </ul>
+
+        <div class="scenario-box">
+          <div class="scenario-title">관찰 시나리오 (예측 아님)</div>
+          <div id="scenarioText" class="scenario-text">
+            과거 30일 실제 최고가·최저가, 이동평균 대비 위치, 변동성 등을 바탕으로 현재 구간을 설명합니다.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">📰 최근 뉴스 종합 요약</h2>
+      <div id="newsSummary" class="summary-box">
+        종목을 조회하면 최근 뉴스 내용을 한 문단으로 묶어 표시합니다.
+      </div>
+    </div>
+
+    <div class="notice">
+      ⚠️ Finnhub 회사 뉴스는 문서상 북미 기업 대상이므로, 미국 종목에서는 잘 동작하고 다른 시장 종목은 비어 있을 수 있습니다. [5](https://outlook.office365.com/owa/?ItemID=AAMkADc3OGM0ZjkxLTVhNTMtNDg2ZS05Nzc4LTIzOGM3YzFlZWVkMABGAAAAAABvohkLVzgfR4Vl5ZiMr1wJBwBjq0Cf3NO1SZCvDD6ZPHSBAAAAE8cRAABjq0Cf3NO1SZCvDD6ZPHSBAAFn3seOAAA%3d&exvsurl=1&viewmodel=ReadMessageItem)<br />
+      ⚠️ 이 페이지는 데이터 조회 및 요약용 예시이며, 미래 가격 예측이나 확률 기반 시그널은 제공하지 않습니다.
+    </div>
+
+  </div>
+
+  <script>
+    function formatNumber(value) {
+      if (value === null || value === undefined || isNaN(value)) return "-";
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    function formatPct(value) {
+      if (value === null || value === undefined || isNaN(value)) return "-";
+      const num = Number(value);
+      return `${num > 0 ? "+" : ""}${num.toFixed(2)}%`;
+    }
+
+    function getChangeClass(value) {
+      if (value > 0) return "up";
+      if (value < 0) return "down";
+      return "neutral";
+    }
+
+    function sma(values, period) {
+      if (!values || values.length < period) return null;
+      const subset = values.slice(values.length - period);
+      const sum = subset.reduce((acc, v) => acc + v, 0);
+      return sum / period;
+    }
+
+    function stddev(values) {
+      if (!values || values.length === 0) return null;
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const variance = values.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / values.length;
+      return Math.sqrt(variance);
+    }
+
+    function drawChart(labels, closes) {
+      const canvas = document.getElementById("priceChart");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+
+      if (!closes || closes.length < 2) {
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "14px Arial";
+        ctx.fillText("차트 데이터를 표시할 수 없습니다.", 20, 40);
+        return;
+      }
+
+      const padding = 40;
+      const min = Math.min(...closes);
+      const max = Math.max(...closes);
+      const range = max - min || 1;
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const y = padding + ((h - padding * 2) / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(w - padding, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      closes.forEach((v, i) => {
+        const x = padding + (i * (w - padding * 2)) / (closes.length - 1);
+        const y = h - padding - ((v - min) / range) * (h - padding * 2);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "12px Arial";
+      ctx.fillText(labels[0] || "", padding, h - 12);
+      ctx.fillText(labels[labels.length - 1] || "", w - padding - 60, h - 12);
+      ctx.fillText(formatNumber(max), 6, padding);
+      ctx.fillText(formatNumber(min), 6, h - padding);
+    }
+
+    function buildCombinedNewsParagraph(newsItems) {
+      if (!Array.isArray(newsItems) || newsItems.length === 0) {
+        return "최근 뉴스가 없거나, 이 종목은 Finnhub company_news 지원 범위가 아닐 수 있습니다. 미국 종목(AAPL, MSFT, NVDA 등)으로 먼저 테스트해 보세요.";
+      }
+
+      const summaries = newsItems
+        .map(n => (n.summary || "").trim())
+        .filter(Boolean);
+
+      if (summaries.length === 0) {
+        return "기사 요약(summary) 데이터가 없어 종합 문단을 만들 수 없습니다.";
+      }
+
+      // 중복 제거
+      const unique = [...new Set(summaries)];
+
+      // 너무 길면 앞부분만 사용
+      const limited = unique.slice(0, 5);
+
+      const combined = limited.join(" ");
+
+      const intro = `최근 ${limited.length}건의 뉴스 요약을 종합하면, `;
+      return intro + combined;
+    }
+
+    async function loadData() {
+      const symbol = document.getElementById("symbol").value.trim().toUpperCase();
+      const apiKey = "d8h509pr01qhjpmqkjtgd8h509pr01qhjpmqkju0";
+      const errorDiv = document.getElementById("error");
+      errorDiv.innerText = "";
+
+      if (!symbol) {
+        errorDiv.innerText = "종목 심볼을 입력해 주세요. 예: AAPL";
+        return;
+      }
+
+      try {
+        // 1) 현재가
+        const quote = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`
+        ).then(r => r.json());
+
+        if (!quote || (quote.c === 0 && quote.h === 0 && quote.l === 0 && quote.o === 0 && quote.pc === 0)) {
+          throw new Error("유효한 종목 데이터를 찾지 못했습니다.");
+        }
+
+        document.getElementById("symbolName").innerText = `${symbol} 현재 데이터`;
+        document.getElementById("price").innerText = formatNumber(quote.c);
+
+        const changeValue = Number(quote.d ?? (quote.c - quote.pc));
+        const changePct = Number(quote.dp);
+        const changeClass = getChangeClass(changeValue);
+
+        const changeEl = document.getElementById("changeText");
+        changeEl.className = changeClass;
+        changeEl.innerText = `전일 대비 ${formatNumber(changeValue)} (${formatPct(changePct)})`;
+
+        document.getElementById("open").innerText = formatNumber(quote.o);
+        document.getElementById("high").innerText = formatNumber(quote.h);
+        document.getElementById("low").innerText = formatNumber(quote.l);
+        document.getElementById("prevClose").innerText = formatNumber(quote.pc);
+
+        // 2) 당일 범위 내 현재 위치
+        const low = Number(quote.l);
+        const high = Number(quote.h);
+        const current = Number(quote.c);
+        const dayRange = high - low;
+        const positionInDay = dayRange > 0 ? ((current - low) / dayRange) * 100 : 0;
+
+        document.getElementById("rangeLowLabel").innerText = `저가: ${formatNumber(low)}`;
+        document.getElementById("rangeHighLabel").innerText = `고가: ${formatNumber(high)}`;
+        document.getElementById("rangeMarker").style.left = `${Math.max(0, Math.min(100, positionInDay))}%`;
+
+        let dayPositionText = "";
+        if (positionInDay >= 80) dayPositionText = "현재가는 당일 범위의 상단 구간에 있습니다.";
+        else if (positionInDay <= 20) dayPositionText = "현재가는 당일 범위의 하단 구간에 있습니다.";
+        else dayPositionText = "현재가는 당일 범위의 중간 구간에 있습니다.";
+
+        document.getElementById("rangeCaption").innerText =
+          `${dayPositionText} 당일 고가-저가 범위는 ${formatNumber(dayRange)} 입니다.`;
+
+        // 3) 최근 30일 candle 데이터
+        const toSec = Math.floor(Date.now() / 1000);
+        const fromSec = toSec - (60 * 60 * 24 * 45); // 비영업일 감안
+        const candles = await fetch(
+          `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=D&from=${fromSec}&to=${toSec}&token=${apiKey}`
+        ).then(r => r.json());
+
+        let closes = [];
+        let times = [];
+        if (candles && candles.c && Array.isArray(candles.c) && candles.c.length > 0) {
+          closes = candles.c.slice(-30);
+          times = (candles.t || []).slice(-30).map(ts => {
+            const d = new Date(ts * 1000);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+          });
+        }
+
+        drawChart(times, closes);
+
+        // 4) 차트 기반 관찰 분석
+        const analysisList = document.getElementById("analysisList");
+        analysisList.innerHTML = "";
+
+        if (closes.length > 0) {
+          const latest = closes[closes.length - 1];
+          const sma5 = sma(closes, 5);
+          const sma20 = sma(closes, 20);
+          const max30 = Math.max(...closes);
+          const min30 = Math.min(...closes);
+          const volAbs = stddev(closes);
+          const volPct = latest ? (volAbs / latest) * 100 : null;
+          const ret30 = closes.length > 1 ? ((latest - closes[0]) / closes[0]) * 100 : null;
+
+          const points = [];
+          points.push(`최근 30일 실제 종가 기준 최고가는 ${formatNumber(max30)}, 최저가는 ${formatNumber(min30)} 입니다.`);
+          if (sma5 !== null) points.push(`현재가와 5일 평균의 차이는 ${formatNumber(latest - sma5)} 입니다.`);
+          if (sma20 !== null) points.push(`현재가와 20일 평균의 차이는 ${formatNumber(latest - sma20)} 입니다.`);
+          if (ret30 !== null) points.push(`최근 30일 종가 기준 누적 수익률은 ${formatPct(ret30)} 입니다.`);
+          if (volPct !== null) points.push(`최근 30일 종가 기준 단순 변동성(표준편차/현재가)은 약 ${volPct.toFixed(2)}% 입니다.`);
+
+          points.forEach(text => {
+            const li = document.createElement("li");
+            li.innerText = text;
+            analysisList.appendChild(li);
+          });
+
+          document.getElementById("chartMeta").innerText =
+            `최근 30일 차트 기준 실제 최고가 ${formatNumber(max30)} / 실제 최저가 ${formatNumber(min30)} / 5일 평균 ${sma5 ? formatNumber(sma5) : "-"} / 20일 평균 ${sma20 ? formatNumber(sma20) : "-"}`;
+
+          let scenario = "";
+          if (sma5 && sma20) {
+            if (latest > sma5 && latest > sma20) {
+              scenario = "현재가는 단기(5일)·중기(20일) 평균보다 모두 높은 구간입니다. 최근 흐름이 평균선 위에 있는 상태로 해석할 수 있습니다.";
+            } else if (latest < sma5 && latest < sma20) {
+              scenario = "현재가는 단기(5일)·중기(20일) 평균보다 모두 낮은 구간입니다. 최근 흐름이 평균선 아래에 있는 상태로 해석할 수 있습니다.";
+            } else {
+              scenario = "현재가는 단기·중기 평균선 중 일부 위/아래에 걸쳐 있어 혼재된 구간으로 볼 수 있습니다.";
+            }
+          } else {
+            scenario = "이동평균을 계산하기에 데이터가 충분하지 않아 기본 관찰만 제공합니다.";
+          }
+
+          scenario += ` 최근 30일 실제 범위(최저 ${formatNumber(min30)} ~ 최고 ${formatNumber(max30)}) 안에서 현재 위치를 함께 보면 구간 해석에 도움이 됩니다.`;
+
+          document.getElementById("scenarioText").innerText = scenario;
+        } else {
+          document.getElementById("chartMeta").innerText = "차트 데이터를 충분히 가져오지 못했습니다.";
+          document.getElementById("scenarioText").innerText = "차트 기반 관찰 설명을 만들 수 있는 데이터가 부족합니다.";
+        }
+
+        // 5) 뉴스 종합 요약
+        const today = new Date();
+        const from = new Date();
+        from.setDate(today.getDate() - 7);
+        const fromStr = from.toISOString().slice(0, 10);
+        const toStr = today.toISOString().slice(0, 10);
+
+        const news = await fetch(
+          `https://finnhub.io/api/v1/company-news?symbol=${symbol}&from=${fromStr}&to=${toStr}&token=${apiKey}`
+        ).then(r => r.json());
+
+        const combinedSummary = buildCombinedNewsParagraph(news);
+        document.getElementById("newsSummary").innerText = combinedSummary;
+
+      } catch (error) {
+        console.error(error);
+        errorDiv.innerText = "데이터를 불러오지 못했습니다. API 키, 종목 심볼, 또는 지원 범위를 확인해 주세요.";
+      }
+    }
+  </script>
+</body>
+</html>
